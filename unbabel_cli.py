@@ -1,4 +1,24 @@
 import argparse
+import json
+from datetime import datetime
+
+def parse_input(file_path):
+    translations = []
+
+    try:    
+        with open(file_path, 'r') as input_file:
+            for line in input_file:
+                translation = json.loads(line.strip())
+                # Convert timestamp to datetime objects for easier comparsion and calculation
+                translation['timestamp'] = datetime.strptime(translation['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
+                translations.append(translation)
+
+    except Exception as e:
+        print(f"Error parsing input file: {str(e)}")
+        return None
+    
+    return translations
+
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate moving average of translation delivery times.")
