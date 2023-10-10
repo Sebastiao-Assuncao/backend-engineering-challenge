@@ -3,12 +3,23 @@ import json
 from datetime import datetime, timedelta
 from collections import deque
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[logging.StreamHandler()])
 
 def parse_input(file_path):
+    '''
+    Parse the input JSON file and convert it into a list of event dictionaries.
+    
+    Parameters:
+        file_path -> str: The path to the input file.
+        
+    Returns:
+        translations -> list: A list of dictionaries, each representing an event.
+    '''
+
     translations = []
 
     try:    
@@ -26,14 +37,26 @@ def parse_input(file_path):
     return translations
 
 def calculate_moving_average(translations, window_size):
+    '''
+    Calculate the moving average of translation delivery times per minute for a specified window size.
+    
+    Parameters:
+        translations -> list: A list of translations, each represented as a dictionary.
+        window_size -> int: The size of the window for which the moving average is to be calculated.
+        
+    Returns:
+        moving_averages -> list: A list of dictionaries, each containing a minute and the corresponding moving average.
+    '''
+
     moving_averages = []
     window_queue = deque()
     window_sum = 0
 
     current_minute = translations[0]['timestamp'].replace(second=0, microsecond=0)
-    last_minute = translations[-1]['timestamp'].replace(second=0, microsecond=0)
-
-    while current_minute <= last_minute + timedelta(minutes=1):
+    last_minute = translations[-1]['timestamp'].replace(second=0, microsecond=0) + timedelta(minutes=1)
+    
+    # Iterate through each minute from the first to the last translation
+    while current_minute <= last_minute:
         average = 0
 
         # Check for new translations that fall within the new window with the added minute
@@ -46,9 +69,11 @@ def calculate_moving_average(translations, window_size):
         while window_queue and window_queue[0]['timestamp'] <= current_minute - timedelta(minutes=window_size):
             window_sum -= window_queue.popleft()['duration']
         
+        # Calculate the average for the current minute
         if window_queue:
             average = window_sum / len(window_queue)
         
+        # Store the average for the current minute
         moving_averages.append({
         "date": current_minute.strftime("%Y-%m-%d %H:%M:%S"),
         "average_delivery_time": f'{average:g}'
@@ -59,8 +84,16 @@ def calculate_moving_average(translations, window_size):
     return moving_averages
 
 def output_moving_average(moving_averages, output_file):
+    '''
+    Output the calculated moving averages to a file in the desired format.
+    
+    Parameters:
+        moving_averages -> list: A list of dictionaries, each containing a minute and the corresponding moving average.
+        output_file -> strS: The path to the file where the output should be written.
+    '''
     try:
-        with open(output_file, 'w') as file:
+        output_file_path = os.path.join('outputs/',output_file)
+        with open(output_file_path, 'w') as file:
             for avg in moving_averages:
                 file.write(f'{json.dumps(avg)}\n')
     
@@ -70,6 +103,8 @@ def output_moving_average(moving_averages, output_file):
 
 
 def main():
+
+    # Argument parser for CLI
     parser = argparse.ArgumentParser(description="Calculate moving average of translation delivery times.")
     parser.add_argument("--input_file", required=True, help="Path to the input file containing translations.")
     parser.add_argument("--window_size", required=True, type=int, help="The window size in minutes for moving average calculation.")

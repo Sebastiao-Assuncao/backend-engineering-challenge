@@ -25,9 +25,11 @@ The input file should contain translation events in JSON format, one per line. E
 {"timestamp": "2018-12-26 18:23:19.903159","translation_id": "5aa5b2f39f7254a75bb3","source_language": "en","target_language": "fr","client_name": "taxi-eats","event_name": "translation_delivered","nr_words": 100, "duration": 54}
 ```
 
+Note: The example above is contained in the 'inputs/' folder
+
 ## Output Format
 
-The output file will contain the moving average per minute in JSON format. Example:
+The output file will be located in the 'outputs/' folder and will contain the moving average per minute in JSON format. Example:
 
 ```json
 {"date": "2018-12-26 18:11:00", "average_delivery_time": 0}
