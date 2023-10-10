@@ -1,6 +1,7 @@
 import argparse
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import deque
 
 def parse_input(file_path):
     translations = []
@@ -18,6 +19,39 @@ def parse_input(file_path):
         return None
     
     return translations
+
+def calculate_moving_average(translations, window_size):
+    moving_averages = []
+    window_queue = deque()
+    window_sum = 0
+
+    current_minute = translations[0]['timestamp'].replace(second=0, microsecond=0)
+    last_minute = translations[-1]['timestamp'].replace(second=0, microsecond=0)
+
+    while current_minute <= last_minute + timedelta(minutes=1):
+        average = 0
+
+        # Check for new translations that fall within the new window with the added minute
+        while translations and translations[0]['timestamp'] < current_minute:    
+            translation = translations.pop(0)
+            window_sum += translation['duration']
+            window_queue.append(translation)
+
+        # Remove translations from the window that are older than the current minute minus the window_size   
+        while window_queue and window_queue[0]['timestamp'] <= current_minute - timedelta(minutes=window_size):
+            window_sum -= window_queue.popleft()['duration']
+        
+        if window_queue:
+            average = window_sum / len(window_queue)
+        
+        moving_averages.append({
+        "date": current_minute.strftime("%Y-%m-%d %H:%M:%S"),
+        "average_delivery_time": f'{average:g}'
+        })
+
+        current_minute += timedelta(minutes=1)
+    
+    return moving_averages
 
 
 def main():
