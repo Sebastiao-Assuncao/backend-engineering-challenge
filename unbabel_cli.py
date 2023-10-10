@@ -53,6 +53,12 @@ def calculate_moving_average(translations, window_size):
     
     return moving_averages
 
+def output_moving_average(moving_averages, output_file):
+    with open(output_file, 'w') as file:
+        for avg in moving_averages:
+            file.write(f'{json.dumps(avg)}\n')
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate moving average of translation delivery times.")
