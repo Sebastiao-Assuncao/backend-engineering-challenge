@@ -47,3 +47,9 @@ The output file will be located in the 'outputs/' folder and will contain the mo
 {"date": "2018-12-26 18:23:00", "average_delivery_time": 31}
 {"date": "2018-12-26 18:24:00", "average_delivery_time": 42.5}
 ```
+
+## Optimizations
+
+Given the ordered nature of the input lines (by timestamp), the application leverages this to optimize the calculation of the moving average by:
+- Utilizing a queue to efficiently add and remove translations from the window, ensuring O(1) time complexity for these operations.
+- Avoiding recalculating the sum of durations in the window from scratch for each minute by maintaining a running total.
