@@ -2,6 +2,11 @@ import argparse
 import json
 from datetime import datetime, timedelta
 from collections import deque
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[logging.StreamHandler()])
 
 def parse_input(file_path):
     translations = []
@@ -15,7 +20,7 @@ def parse_input(file_path):
                 translations.append(translation)
 
     except Exception as e:
-        print(f"Error parsing input file: {str(e)}")
+        logging.error(f"Error parsing input file: {str(e)}")
         return None
     
     return translations
@@ -54,9 +59,13 @@ def calculate_moving_average(translations, window_size):
     return moving_averages
 
 def output_moving_average(moving_averages, output_file):
-    with open(output_file, 'w') as file:
-        for avg in moving_averages:
-            file.write(f'{json.dumps(avg)}\n')
+    try:
+        with open(output_file, 'w') as file:
+            for avg in moving_averages:
+                file.write(f'{json.dumps(avg)}\n')
+    
+    except IOError as e:
+        logging.error(f'"File write error: {str(e)}')
 
 
 
@@ -66,6 +75,19 @@ def main():
     parser.add_argument("--window_size", required=True, type=int, help="The window size in minutes for moving average calculation.")
     parser.add_argument("--output_file", default="output.txt", help="Path to desired output file (optional).")
     args = parser.parse_args()
+
+    # Window size validation
+    if args.window_size <= 0:
+        logging.error("Error: Window size must be a positive integer")
+        return
+    
+    translations = parse_input(args.input_file)
+
+    if not translations:
+        return
+
+    moving_averages = calculate_moving_average(translations, args.window_size)
+    output_moving_average(moving_averages, args.output_file)
 
 if __name__ == "__main__":
     main()
