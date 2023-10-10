@@ -2,6 +2,12 @@
 
 This command-line application calculates the moving average of translation delivery times per minute over a specified window of minutes, given a stream of translation delivery events.
 
+## Prerequisites
+
+- Python 3.x
+- All imported modules come built into python, no further requirements
+
+
 ## Usage
 
 To use the application, run the following command in your terminal:
@@ -12,7 +18,13 @@ python3 unbabel_cli.py --input_file [INPUT_FILE_PATH] --window_size [WINDOW_SIZE
 
 - `[INPUT_FILE_PATH]`: Path to the input JSON file containing translation events.
 - `[WINDOW_SIZE]`: The window size in minutes for calculating the moving average.
-- `[OUTPUT_FILE_PATH]`: (Optional) Path to the desired output file. If not provided, defaults to `output.txt`.
+- `[OUTPUT_FILE_PATH]`: (Optional) Path to the desired output file. If not provided, defaults to `outputs/output.txt`.
+
+Example:
+
+```sh
+python3 unbabel_cli.py --input_file events.json --window_size 10 --output_file output.json
+```
 
 
 ## Input Format
@@ -47,6 +59,31 @@ The output file will be located in the 'outputs/' folder and will contain the mo
 {"date": "2018-12-26 18:23:00", "average_delivery_time": 31}
 {"date": "2018-12-26 18:24:00", "average_delivery_time": 42.5}
 ```
+
+## Error Handling
+
+In the `unbabel_cli.py` script, various error scenarios are anticipated and handled. Below are the types of errors that are handled and how the application responds:
+
+#### 1. File Not Found Error
+- **Scenario:** When the provided input file path does not point to an existing file.
+- **Response:** The application logs an error message: "File [file_path] not found." and terminates gracefully.
+
+#### 2. Invalid Timestamp Format
+- **Scenario:** When the timestamp in the input JSON data is not in the expected format.
+- **Response:** Logs an error message: "Invalid timestamp format in [file_path]." and terminates the application.
+
+#### 3. Validation Error
+- **Scenario:** When the input JSON data does not adhere to the expected schema (missing keys, incorrect data types, etc.).
+- **Response:** Logs specific error messages detailing the validation failure and terminates the application.
+
+#### 4. I/O Error
+- **Scenario:** When the application cannot write the output to the specified file.
+- **Response:** Logs an error message: "File write error: [error_detail]" and terminates the application.
+
+#### 5. CLI Argument Error
+- **Scenario:** When the window size provided via CLI is not a positive integer.
+- **Response:** Logs an error message: "Error: Window size must be a positive integer" and terminates the application.
+
 
 ## Optimizations
 

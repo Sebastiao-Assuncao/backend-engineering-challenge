@@ -175,7 +175,6 @@ def validate_translation(translation):
 def main():
     args = parse_cli_arguments()
 
-
     translations = parse_input(args.input_file)
     if not translations:
         return
