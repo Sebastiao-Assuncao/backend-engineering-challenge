@@ -109,3 +109,31 @@ The folders inputs/ and outputs/ contain 2 files each, one relative to the examp
 Given the ordered nature of the input lines (by timestamp), the application leverages this to optimize the calculation of the moving average by:
 - Utilizing a queue to efficiently add and remove translations from the window, ensuring O(1) time complexity for these operations.
 - Avoiding recalculating the sum of durations in the window from scratch for each minute by maintaining a running total.
+
+
+## Complexity Analysis
+
+1. Parsing Inpu:
+    - Reading each line from the input file and parsing it: O(M), where M is the number of translations
+    - Validating each line: O(K), where K is the number of keys in each translation
+    - Overall: O(M * K)
+
+2. Calculate Moving Averages:
+    - Iterating through every minute in the range: O(T), where T is the difference between the last minute rounded up and the first minute rounded down.
+    - Popping the first translation: O(M). We do it M times, so we get O(M²)
+    - Popping elements from the window_queue can be O(M) in case all translations fall in the same minute, but in this case, all the other minutes will have 0 translations to pop. Either way, let's consider O(M)
+    - Overall: O(T + M² + M)
+
+3. Outputting Moving Averages:
+    - Writing each line to a file: O(T)
+    - Overall: O(T)
+
+Overall Time Complexity: O(M * K) + O(T + M² + M) + O(T) = O(M * K + M² + M + 2T)
+
+In this case, the most significant term is O(M²). As the number of translations increase, this quadratic term wil dominate the time complexity.
+
+
+## Considerations (To Improve)
+
+The calculate_moving_averages algorithm might be improved further by removing the usage of the translations.pop(0) operation and instead using a deque to popleft with O(1) time complexity.
+
