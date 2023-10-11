@@ -2,6 +2,7 @@ import unittest
 import json
 from datetime import datetime
 from unbabel_cli import parse_input, calculate_moving_average, output_moving_average
+from collections import deque
 import os
 import filecmp
 
@@ -43,9 +44,9 @@ class TestTranslationApp(unittest.TestCase):
         try:
             self.create_temp_input_file('{"timestamp": "2018-12-26 18:11:08.509654","translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20}\n')
 
-            expected_output = [
+            expected_output = deque([
                 {"timestamp": datetime.strptime("2018-12-26 18:11:08.509654", "%Y-%m-%d %H:%M:%S.%f"), "translation_id": "5aa5b2f39f7254a75aa5", "source_language": "en", "target_language": "fr", "client_name": "airliberty", "event_name": "translation_delivered", "nr_words": 30, "duration": 20}
-            ]
+            ])
             self.assertEqual(parse_input(temp_input_file), expected_output)
 
         finally:
@@ -64,8 +65,8 @@ class TestTranslationApp(unittest.TestCase):
         try:
             self.create_temp_input_file("")
 
-            # Expecting parse_input to return an empty list or None, 
-            self.assertEqual(parse_input(temp_input_file), [])
+            # Expecting parse_input to return an empty deque 
+            self.assertFalse(parse_input(temp_input_file))
 
         finally:
             # Clean the temporary file
@@ -82,9 +83,9 @@ class TestTranslationApp(unittest.TestCase):
                                     {"timestamp": "2018-12-26 18:15:19.903159","translation_id": "5aa5b2f39f7254a75aa4","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 31}\n\
                                     {"timestamp": "2018-12-26 18:23:19.903159","translation_id": "5aa5b2f39f7254a75bb3","source_language": "en","target_language": "fr","client_name": "taxi-eats","event_name": "translation_delivered","nr_words": 100, "duration": 54}\n')
 
-            expected_output = [{'timestamp': datetime.strptime("2018-12-26 18:11:08.509654", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75aa5', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'airliberty', 'event_name': 'translation_delivered', 'nr_words': 30, 'duration': 20},
+            expected_output = deque([{'timestamp': datetime.strptime("2018-12-26 18:11:08.509654", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75aa5', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'airliberty', 'event_name': 'translation_delivered', 'nr_words': 30, 'duration': 20},
                             {'timestamp': datetime.strptime("2018-12-26 18:15:19.903159", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75aa4', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'airliberty', 'event_name': 'translation_delivered', 'nr_words': 30, 'duration': 31},
-                            {'timestamp': datetime.strptime("2018-12-26 18:23:19.903159", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75bb3', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'taxi-eats', 'event_name': 'translation_delivered', 'nr_words': 100, 'duration': 54}]
+                            {'timestamp': datetime.strptime("2018-12-26 18:23:19.903159", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75bb3', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'taxi-eats', 'event_name': 'translation_delivered', 'nr_words': 100, 'duration': 54}])
 
             self.assertEqual(parse_input(TEMP_INPUT), expected_output)
 
@@ -160,9 +161,9 @@ class TestTranslationApp(unittest.TestCase):
         This validates that calculate_moving_average() functions as
         expected for a basic valid input.
         '''
-        translations = [
+        translations = deque([
             {"timestamp": datetime.strptime("2018-12-26 18:11:08.509654", "%Y-%m-%d %H:%M:%S.%f"), "translation_id": "5aa5b2f39f7254a75aa5", "source_language": "en", "target_language": "fr", "client_name": "airliberty", "event_name": "translation_delivered", "nr_words": 30, "duration": 20}
-        ]
+        ])
         window_size = 10
         expected_output = [
             {"date": "2018-12-26 18:11:00", "average_delivery_time": "0"},

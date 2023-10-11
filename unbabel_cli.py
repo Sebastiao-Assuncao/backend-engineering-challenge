@@ -20,7 +20,7 @@ def parse_input(file_path):
         translations -> list: A list of dictionaries, each representing an event.
     '''
 
-    translations = []
+    translations = deque()
     translation_ids = set()
 
     try:    
@@ -63,7 +63,7 @@ def calculate_moving_average(translations, window_size):
     Calculate the moving average of translation delivery times per minute for a specified window size.
     
     Parameters:
-        translations -> list: A list of translations, each represented as a dictionary.
+        translations -> deque: A deque of translations, each represented as a dictionary.
         window_size -> int: The size of the window for which the moving average is to be calculated.
         
     Returns:
@@ -83,7 +83,7 @@ def calculate_moving_average(translations, window_size):
 
         # Check for new translations that fall within the new window with the added minute
         while translations and translations[0]['timestamp'] < current_minute:    
-            translation = translations.pop(0)
+            translation = translations.popleft()
             window_sum += translation['duration']
             window_queue.append(translation)
 
