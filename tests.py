@@ -7,12 +7,17 @@ import filecmp
 
 EXAMPLE_INPUT = 'inputs/example_input.json'
 EXAMPLE_OUTPUT = 'outputs/example_output.json'
+LARGE_INPUT = 'inputs/large_input.json'
+LARGE_OUTPUT = 'outputs/large_output.json'
 TEMP_INPUT = 'temp_input.json'
 TEMP_OUTPUT = 'temp_output.json'
 
 class TestTranslationApp(unittest.TestCase):
 
     def create_temp_input_file(self, data):
+        '''
+        Auxilary function that creates an input file given the desired data to be written in it
+        '''
         with open(TEMP_INPUT, 'w') as file:
             file.write(data)
    
@@ -26,7 +31,6 @@ class TestTranslationApp(unittest.TestCase):
         translations = parse_input(EXAMPLE_INPUT)
         self.assertEqual(len(translations), 3)
         self.assertEqual(translations[0]['translation_id'], "5aa5b2f39f7254a75aa5")
-
 
     def test_parse_input_valid_file(self):
         '''
@@ -61,11 +65,31 @@ class TestTranslationApp(unittest.TestCase):
             self.create_temp_input_file("")
 
             # Expecting parse_input to return an empty list or None, 
-            self.assertTrue(parse_input(temp_input_file) in [None, []])
+            self.assertEqual(parse_input(temp_input_file), [])
 
         finally:
             # Clean the temporary file
             os.remove(temp_input_file)
+    
+    def test_parse_input_duplicate_translation(self):
+        '''
+        This validates that any repeated translation will be ignored in parse_input()
+        '''
+
+        try:
+            self.create_temp_input_file('{"timestamp": "2018-12-26 18:11:08.509654","translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20}\n\
+                                    {"timestamp": "2018-12-26 18:15:19.903159","translation_id": "5aa5b2f39f7254a75aa4","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 31}\n\
+                                    {"timestamp": "2018-12-26 18:15:19.903159","translation_id": "5aa5b2f39f7254a75aa4","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 31}\n\
+                                    {"timestamp": "2018-12-26 18:23:19.903159","translation_id": "5aa5b2f39f7254a75bb3","source_language": "en","target_language": "fr","client_name": "taxi-eats","event_name": "translation_delivered","nr_words": 100, "duration": 54}\n')
+
+            expected_output = [{'timestamp': datetime.strptime("2018-12-26 18:11:08.509654", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75aa5', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'airliberty', 'event_name': 'translation_delivered', 'nr_words': 30, 'duration': 20},
+                            {'timestamp': datetime.strptime("2018-12-26 18:15:19.903159", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75aa4', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'airliberty', 'event_name': 'translation_delivered', 'nr_words': 30, 'duration': 31},
+                            {'timestamp': datetime.strptime("2018-12-26 18:23:19.903159", "%Y-%m-%d %H:%M:%S.%f"), 'translation_id': '5aa5b2f39f7254a75bb3', 'source_language': 'en', 'target_language': 'fr', 'client_name': 'taxi-eats', 'event_name': 'translation_delivered', 'nr_words': 100, 'duration': 54}]
+
+            self.assertEqual(parse_input(TEMP_INPUT), expected_output)
+
+        finally:
+            os.remove(TEMP_INPUT)
     
     def test_parse_input_invalid_file(self):
         '''
@@ -75,6 +99,10 @@ class TestTranslationApp(unittest.TestCase):
         self.assertIsNone(parse_input('invalid_path.json'))
     
     def test_parse_input_invalid_timestamp(self):
+        '''
+        This validates that parse_input() handles invalid timestamps
+        gracefully by returning None.
+        '''
         try:
             self.create_temp_input_file('{"timestamp": "invalid_timestamp","translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20}\n')
             self.assertIsNone(parse_input(TEMP_INPUT))
@@ -82,6 +110,10 @@ class TestTranslationApp(unittest.TestCase):
             os.remove(TEMP_INPUT)
 
     def test_parse_input_missing_key(self):
+        '''
+        This validates that parse_input() handles missing keys in translations
+        gracefully by returning None.
+        '''
         try:
             self.create_temp_input_file('{"translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20}\n')
             self.assertIsNone(parse_input(TEMP_INPUT))
@@ -89,6 +121,10 @@ class TestTranslationApp(unittest.TestCase):
             os.remove(TEMP_INPUT)
 
     def test_parse_input_invalid_data_type(self):
+        '''
+        This validates that parse_input() handles invalid data types in translations
+        gracefully by returning None.
+        '''
         try:
             self.create_temp_input_file('{"timestamp": "2018-12-26 18:11:08.509654","translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": "30", "duration": 20}\n')
             self.assertIsNone(parse_input(TEMP_INPUT))
@@ -96,6 +132,10 @@ class TestTranslationApp(unittest.TestCase):
             os.remove(TEMP_INPUT)
     
     def test_parse_input_additional_key(self):
+        '''
+        This validates that parse_input() handles additional keys in translations
+        gracefully by returning None.
+        '''
         try:
             self.create_temp_input_file('{"timestamp": "2018-12-26 18:11:08.509654","translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20, "extra_key": "extra_value"}\n')
             self.assertIsNone(parse_input(TEMP_INPUT))
@@ -103,6 +143,10 @@ class TestTranslationApp(unittest.TestCase):
             os.remove(TEMP_INPUT)
 
     def test_parse_input_invalid_json(self):
+        '''
+        This validates that parse_input() handles invalid JSON formats
+        gracefully by returning None.
+        '''
         try:
             self.create_temp_input_file('{"timestamp": "2018-12-26 18:11:08.509654" "translation_id": "5aa5b2f39f7254a75aa5","source_language": "en","target_language": "fr","client_name": "airliberty","event_name": "translation_delivered","nr_words": 30, "duration": 20}\n')
             self.assertIsNone(parse_input(TEMP_INPUT))
@@ -126,7 +170,6 @@ class TestTranslationApp(unittest.TestCase):
         ]
         self.assertEqual(calculate_moving_average(translations, window_size), expected_output)
 
-
     def test_calculate_moving_average_example(self):
         '''
         Tests calculate_moving_average() on example input.
@@ -142,8 +185,37 @@ class TestTranslationApp(unittest.TestCase):
         
         # Boundary Test: Ensure that the function handles boundary data correctly
         self.assertEqual(moving_averages[-1]['average_delivery_time'], '42.5')
-
     
+    def test_calculate_moving_average_window_one(self):
+        '''
+        This is a window size edge case where window_size equals 1
+        
+        This also validates that calculate_moving_average() deals well with intervals with no data
+        '''
+
+        expected_moving_averages = ['0', '20', '0', '0', '0', '31', '0', '0', '0', '0', '0', '0', '0', '54']
+
+        translations = parse_input(EXAMPLE_INPUT)
+        moving_averages = calculate_moving_average(translations, 1)
+
+        # !!! Ideally change this, loops should not be used in testing
+        for i in range(len(expected_moving_averages)):
+            self.assertEqual(moving_averages[i]['average_delivery_time'], expected_moving_averages[i])
+
+    def test_calculate_moving_average_max_window(self):
+        '''
+        This is a window size edge case where window_size equals the total number of minutes        
+        '''
+
+        expected_moving_averages = ['0', '20', '20', '20', '20', '25.5', '25.5', '25.5', '25.5', '25.5', '25.5', '25.5', '25.5', '35']
+
+        translations = parse_input(EXAMPLE_INPUT)
+        moving_averages = calculate_moving_average(translations, 14)
+
+        # !!! Ideally change this, loops should not be used in testing
+        for i in range(len(expected_moving_averages)):
+            self.assertEqual(moving_averages[i]['average_delivery_time'], expected_moving_averages[i])
+
     def test_output_moving_average(self):
         '''
         This validates that output_moving_average() correctly 
@@ -158,6 +230,7 @@ class TestTranslationApp(unittest.TestCase):
         try:
             output_moving_average(moving_averages, output_file)
             output_file_path = os.path.join('outputs/',output_file)
+
             # Validate the output file
             with open(output_file_path, 'r') as file:
                 line = file.readline().strip()
@@ -167,22 +240,40 @@ class TestTranslationApp(unittest.TestCase):
             # Clean up the temporary file
             os.remove(output_file_path)
     
-
     def test_full_integration_example(self):
+        '''
+        This validates that the 3 functions integrate well with each other with the example input
+        '''
         translations = parse_input(EXAMPLE_INPUT)
         moving_averages = calculate_moving_average(translations, 10)
 
-        output_file=TEMP_OUTPUT
-
         try:
-            output_moving_average(moving_averages, output_file)
-            output_file_path = os.path.join('outputs/',output_file)
+            output_moving_average(moving_averages, TEMP_OUTPUT)
+            output_file_path = os.path.join('outputs/',TEMP_OUTPUT)
 
             # Validate the output file
             self.assertTrue(filecmp.cmp(output_file_path, EXAMPLE_OUTPUT))
 
         finally:
             # Clean up the temporary file
+            os.remove(output_file_path)
+    
+    # Comment out this test if running tests.py takes too long
+    def test_full_integration_large_file(self):
+        '''
+        This validates that the program works well with large files.
+        '''
+        translations = parse_input(LARGE_INPUT)
+        moving_averages = calculate_moving_average(translations, 15)
+
+        try:
+            output_moving_average(moving_averages, TEMP_OUTPUT)
+            output_file_path = os.path.join('outputs/', TEMP_OUTPUT)
+
+            # This is more of a stress test given that large_output.json was outputted by the program itself
+            self.assertTrue(filecmp.cmp(output_file_path, LARGE_OUTPUT))
+        
+        finally:
             os.remove(output_file_path)
 
 

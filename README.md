@@ -2,6 +2,16 @@
 
 This command-line application calculates the moving average of translation delivery times per minute over a specified window of minutes, given a stream of translation delivery events.
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Input Format](#input-format)
+- [Output Format](#output-format)
+- [Error Handling](#error-handling)
+- [Testing](#testing)
+- [Optimizations](#optimizations)
+
+
 ## Prerequisites
 
 - Python 3.x
@@ -26,7 +36,6 @@ Example:
 python3 unbabel_cli.py --input_file events.json --window_size 10 --output_file output.json
 ```
 
-
 ## Input Format
 
 The input file should contain translation events in JSON format, one per line. Example:
@@ -37,7 +46,6 @@ The input file should contain translation events in JSON format, one per line. E
 {"timestamp": "2018-12-26 18:23:19.903159","translation_id": "5aa5b2f39f7254a75bb3","source_language": "en","target_language": "fr","client_name": "taxi-eats","event_name": "translation_delivered","nr_words": 100, "duration": 54}
 ```
 
-Note: The example above is contained in the 'inputs/' folder
 
 ## Output Format
 
@@ -83,6 +91,17 @@ In the `unbabel_cli.py` script, various error scenarios are anticipated and hand
 #### 5. CLI Argument Error
 - **Scenario:** When the window size provided via CLI is not a positive integer.
 - **Response:** Logs an error message: "Error: Window size must be a positive integer" and terminates the application.
+
+
+## Testing
+
+To run the tests, execute the following command:
+
+```sh
+python3 tests.py
+```
+
+The folders inputs/ and outputs/ contain 2 files each, one relative to the example given and the other relative to testing with large amounts of data.
 
 
 ## Optimizations

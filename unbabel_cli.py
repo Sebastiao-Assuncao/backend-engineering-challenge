@@ -21,15 +21,22 @@ def parse_input(file_path):
     '''
 
     translations = []
+    translation_ids = set()
 
     try:    
         with open(file_path, 'r') as input_file:
             for line in input_file:
                 translation = json.loads(line.strip())
 
+                # Check for duplicate translations. We ignore duplicates and continue
+                if translation['translation_id'] in translation_ids:
+                    logging.info(f"Duplicate translation detected: {translation}")
+                    continue
+                translation_ids.add(translation['translation_id'])
+
                 # Validate translation
                 if not (validate_translation(translation)):
-                    logging.error(f"Invalid translation: {translation}")
+                    # No logging since validate_translation already logs the error
                     return None
                 
                 # Convert timestamp to datetime objects for easier comparsion and calculation
